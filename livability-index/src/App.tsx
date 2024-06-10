@@ -7,10 +7,12 @@ import DataTable from 'react-data-table-component';
 import { read_csv } from './utils/csv_utils';
 import { predict } from './controller/kmedoids_controller';
 import { LivabilityIndex } from './model/livabilityIndex';
+import LivabilityBarchart from './elements/barChart';
 
 export default function App() {
+  const [viewType, setViewType] = useState('map');
   const [data, setData] = useState<LivabilityIndex[]>([]);
-  const [hoveredData, sethoveredData] = useState<LivabilityIndex|null>(null);
+  const [hoveredData, sethoveredData] = useState<LivabilityIndex | null>(null);
   const [year, setYear] = useState(2022)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const inputElement = document.querySelector('.province') as HTMLInputElement | null;
@@ -19,29 +21,29 @@ export default function App() {
     setMousePosition({ x: event.clientX, y: event.clientY });
   };
 
-const sortValue = [
-  { name: 'low', value: 1 },
-  { name: 'medium', value: 2 },
-  { name: 'high', value: 3 }
-];
+  const sortValue = [
+    { name: 'low', value: 1 },
+    { name: 'medium', value: 2 },
+    { name: 'high', value: 3 }
+  ];
 
-  const caseInsensitiveSort = ( rowA : any, rowB : any ) => {
-  const a = rowA.livability_index.toLowerCase();
-  const b = rowB.livability_index.toLowerCase();
+  const caseInsensitiveSort = (rowA: any, rowB: any) => {
+    const a = rowA.livability_index.toLowerCase();
+    const b = rowB.livability_index.toLowerCase();
 
-  const valueA = sortValue.find(item => item.name === a)?.value || 0;
-  const valueB = sortValue.find(item => item.name === b)?.value || 0;
+    const valueA = sortValue.find(item => item.name === a)?.value || 0;
+    const valueB = sortValue.find(item => item.name === b)?.value || 0;
 
-  if (valueA > valueB) {
-    return 1;
-  }
+    if (valueA > valueB) {
+      return 1;
+    }
 
-  if (valueB > valueA) {
-    return -1;
-  }
+    if (valueB > valueA) {
+      return -1;
+    }
 
-  return 0;
-};
+    return 0;
+  };
 
   const columns = [
     {
@@ -71,19 +73,19 @@ const sortValue = [
     {
       name: 'Living Cost Stddev',
       selector: (row: LivabilityIndex) => row.living_cost,
-      cell: (row: any) => row.living_cost.toFixed(2) 
+      cell: (row: any) => row.living_cost.toFixed(2)
     },
     {
       name: 'Livability Index',
       selector: (row: LivabilityIndex) => row.livability_index,
       sortable: true,
-      sortFunction : caseInsensitiveSort
+      sortFunction: caseInsensitiveSort
     }
   ]
 
   const [record, setRecord] = useState(data)
 
-  function handleFilter(event : any, year : any) {
+  function handleFilter(event: any, year: any) {
     const targeted = event.toLowerCase()
     const newData = data.filter(row => {
       const provinceMatch = row.province.toLowerCase().includes(targeted);
@@ -135,12 +137,17 @@ const sortValue = [
     <div className='app'>
       <h1>Indonesia Map</h1>
       <div className='dataContainer'>
-          <button onClick={() => setYear(2020)}>2020</button>
-          <button onClick={() => setYear(2021)}>2021</button>
-          <button onClick={() => setYear(2022)}>2022</button>
-        </div>
+        <button onClick={() => setYear(2020)}>2020</button>
+        <button onClick={() => setYear(2021)}>2021</button>
+        <button onClick={() => setYear(2022)}>2022</button>
+      </div>
+      <div>
+        <button onClick={() => setViewType('map')}>Map</button>
+        <button onClick={() => setViewType('table')}>Table</button>
+      </div>
+      {viewType === 'map' ? <>
         <ComposableMap style={{ width: "100%", height: "900px" }}
-        projection="geoMercator"
+          projection="geoMercator"
           projectionConfig={{
             center: [118, -2],
             scale: 1000
@@ -148,18 +155,18 @@ const sortValue = [
         >
           <Geographies geography={indonesiaTopoJson}>
             {({ geographies }) =>
-            geographies.map((geo) => {
-              const currRow = record.find(row => row.province.includes(geo.properties.provinsi)  && row.year === year) ?? {livability_index : ''}
-              return <Geography onMouseEnter={(e) => {
-                sethoveredData(() => {
-                  return data.filter(row => {
-                    const provinceMatch = row.province.toLowerCase().includes(geo.properties.provinsi.toLowerCase());
-                    const yearMatch = row.year.toString().toLowerCase().includes(year.toString())
-                    return provinceMatch && yearMatch;
-                  })[0]
-                })
-                handleMouseMove(e)
-              }}
+              geographies.map((geo) => {
+                const currRow = record.find(row => row.province.includes(geo.properties.provinsi) && row.year === year) ?? { livability_index: '' }
+                return <Geography onMouseEnter={(e) => {
+                  sethoveredData(() => {
+                    return data.filter(row => {
+                      const provinceMatch = row.province.toLowerCase().includes(geo.properties.provinsi.toLowerCase());
+                      const yearMatch = row.year.toString().toLowerCase().includes(year.toString())
+                      return provinceMatch && yearMatch;
+                    })[0]
+                  })
+                  handleMouseMove(e)
+                }}
                   onMouseLeave={() => {
                     sethoveredData(null)
                   }}
@@ -170,7 +177,7 @@ const sortValue = [
                       inputElement.value = geo.properties.provinsi;
                       yearElement.value = year.toString();
                     }
-                    handleFilter(inputElement?.value , yearElement?.value)
+                    handleFilter(inputElement?.value, yearElement?.value)
                   }}
                   style={{
                     default: {
@@ -179,12 +186,12 @@ const sortValue = [
                           return "green";
                         } else if (currRow.livability_index == "Medium") {
                           return "orange";
-                        }else if (currRow.livability_index == "Low") {
+                        } else if (currRow.livability_index == "Low") {
                           return "Red";
                         }
                       })(),
                       outline: "none",
-                      
+
                     },
                     hover: {
                       fill: "#F53",
@@ -201,20 +208,21 @@ const sortValue = [
           </Geographies>
         </ComposableMap>
         <Hovered hoveredGeography={hoveredData} location={mousePosition} />
-
-        <div className='dataContainer'>
-          <p>Provinsi: </p>
-          <input className='input province' type="text"  onChange={e => handleFilter(inputElement?.value , yearElement?.value)} />
-          <p>Year: </p>
-          <input className='input year' type="text" onChange={e => handleFilter(inputElement?.value , yearElement?.value)} />
-        </div>
-        <div className='tableContainer'>
-          <DataTable
-            columns={columns}
-            data={record}
-            customStyles={customStyles}
-          />
-        </div>
+      </> :
+        <LivabilityBarchart data={data.filter(dat => dat.year === year)} />}
+      <div className='dataContainer'>
+        <p>Provinsi: </p>
+        <input className='input province' type="text" onChange={e => handleFilter(inputElement?.value, yearElement?.value)} />
+        <p>Year: </p>
+        <input className='input year' type="text" onChange={e => handleFilter(inputElement?.value, yearElement?.value)} />
+      </div>
+      <div className='tableContainer'>
+        <DataTable
+          columns={columns}
+          data={record}
+          customStyles={customStyles}
+        />
+      </div>
     </div>
   );
 }

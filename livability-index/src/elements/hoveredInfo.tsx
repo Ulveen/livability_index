@@ -18,7 +18,7 @@ const Hovered = ({ hoveredGeography, location } : { hoveredGeography : Livabilit
     }}>
       <strong>{hoveredGeography.province}</strong> <br />
       <strong>Strong : {hoveredGeography.year}</strong><br />
-      <strong>Health : {hoveredGeography.health_index}</strong><br />
+      <strong>Year : {hoveredGeography.health_index}</strong><br />
       <strong>Polution : {hoveredGeography.polution}</strong><br />
       <strong>Crime : {hoveredGeography.crime_rate}</strong><br />
       <strong>Purchasing : {hoveredGeography.purchasing_power}</strong><br />

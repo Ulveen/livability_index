@@ -29,23 +29,23 @@ export default function App() {
     { name: 'high', value: 3 }
   ];
 
-  const caseInsensitiveSort = ( rowA : any, rowB : any ) => {
-  const a = rowA.livability_index.toLowerCase();
-  const b = rowB.livability_index.toLowerCase();
+  const caseInsensitiveSort = (rowA: any, rowB: any) => {
+    const a = rowA.livability_index.toLowerCase();
+    const b = rowB.livability_index.toLowerCase();
 
-  const valueA = sortValue.find(item => item.name === a)?.value || 0;
-  const valueB = sortValue.find(item => item.name === b)?.value || 0;
+    const valueA = sortValue.find(item => item.name === a)?.value || 0;
+    const valueB = sortValue.find(item => item.name === b)?.value || 0;
 
-  if (valueA > valueB) {
-    return 1;
-  }
+    if (valueA > valueB) {
+      return 1;
+    }
 
-  if (valueB > valueA) {
-    return -1;
-  }
+    if (valueB > valueA) {
+      return -1;
+    }
 
-  return 0;
-};
+    return 0;
+  };
 
   const columns = [
     {
@@ -75,7 +75,7 @@ export default function App() {
     {
       name: 'Living Cost Stddev',
       selector: (row: LivabilityIndex) => row.living_cost,
-      cell: (row: any) => row.living_cost.toFixed(2) 
+      cell: (row: any) => row.living_cost.toFixed(2)
     },
     {
       name: 'Livability Index',
@@ -120,6 +120,27 @@ export default function App() {
     setRecord(newData)
   }
 
+  function handleMouseEnterMap(e: any, geo: any) {
+    sethoveredData(() => {
+      return data.filter(row => {
+        const provinceMatch = row.province.toLowerCase().includes(geo.properties.provinsi.toLowerCase());
+        const yearMatch = row.year.toString().toLowerCase().includes(year.toString())
+        return provinceMatch && yearMatch;
+      })[0]
+    })
+    handleMouseMove(e)
+  }
+
+  function handleMouseClickMap(geo: any) {
+    if (inputElement?.value != null && inputElement?.value != "") {
+      inputElement.value = "";
+    } else if (inputElement != null && yearElement != null) {
+      inputElement.value = geo.properties.provinsi;
+      yearElement.value = year.toString();
+    }
+    handleFilter(inputElement?.value, yearElement?.value)
+  }
+
   const customStyles = {
     header: {
       style: {
@@ -161,11 +182,8 @@ export default function App() {
   const handleMapYear = (selectedYear: number) => {
     setYear(selectedYear);
     setSelectedYear(selectedYear);
+    handleFilter(inputElement?.value, selectedYear)
   };
-
-  function handleTableYear(e: any) {
-    handleFilter(e, "year");
-}
 
   useEffect(() => {
     fetchData()
@@ -175,124 +193,104 @@ export default function App() {
     <div className='app'>
       <h1 className='titleFont'>Livability Index Indonesia {year}</h1>
       <div className='choiceButton'>
-        <button className='choices' onClick={()=>setViewType('map')}>Map View</button>
-        <button className='choices' onClick={()=>setViewType('chart')}>Chart View</button>
+        <button className='choices' onClick={() => setViewType('map')}>Map View</button>
+        <button className='choices' onClick={() => setViewType('chart')}>Chart View</button>
       </div>
       <div className='mapContainer'>
         {viewType === 'map' ? <>
           <ComposableMap style={{ width: "100%", height: "750px" }}
-          projection="geoMercator"
-          projectionConfig={{
-            center: [118, -5],
-            scale: 1500
-            }}
-            >
-          <Geographies geography={indonesiaTopoJson}>
-            {({ geographies }) =>
-            geographies.map((geo) => {
-              const currRow = record.find(row => row.province.includes(geo.properties.provinsi)  && row.year === year) ?? {livability_index : ''}
-              return <Geography onMouseEnter={(e) => {
-                sethoveredData(() => {
-                  return data.filter(row => {
-                    const provinceMatch = row.province.toLowerCase().includes(geo.properties.provinsi.toLowerCase());
-                    const yearMatch = row.year.toString().toLowerCase().includes(year.toString())
-                    return provinceMatch && yearMatch;
-                  })[0]
-                })
-                handleMouseMove(e)
-              }}
-                onClick={() => {
-                  if(inputElement?.value != null && inputElement?.value != ""){
-                    inputElement.value = "";
-                    handleFilter(inputElement?.value, yearElement?.value)
-                    return
-                  }
-                  
-                  if (inputElement != null && yearElement != null) {
-                    inputElement.value = geo.properties.provinsi;
-                    yearElement.value = year.toString();
-                  }
-                  handleFilter(inputElement?.value, yearElement?.value)
-              }}
-                onMouseLeave={() => {
-                  sethoveredData(null)}}
-                key={geo.rsmKey}
-                geography={geo}
-                style={{
-                  default: {
-                    fill: (() => {
-                      if (currRow.livability_index == "High") {
-                          return "green";
-                        } else if (currRow.livability_index == "Medium") {
-                          return "orange";
-                          }else if (currRow.livability_index == "Low") {
+            projection="geoMercator"
+            projectionConfig={{
+              center: [118, -5],
+              scale: 1500
+            }}>
+            <Geographies geography={indonesiaTopoJson}>
+              {({ geographies }) =>
+                geographies.map((geo) => {
+                  const currRow = record.find(row => row.province.includes(geo.properties.provinsi) && row.year === year) || { livability_index: "" }
+                  return <Geography
+                    onMouseEnter={(e) => handleMouseEnterMap(e, geo)}
+                    onClick={() => handleMouseClickMap(geo)}
+                    onMouseLeave={() => {
+                      sethoveredData(null)
+                    }}
+                    key={geo.rsmKey}
+                    geography={geo}
+                    style={{
+                      default: {
+                        fill: (() => {
+                          if (currRow.livability_index == "High") {
+                            return "green";
+                          } else if (currRow.livability_index == "Medium") {
+                            return "orange";
+                          } else if (currRow.livability_index == "Low") {
                             return "Red";
-                            }
-                            })(),
-                            outline: "none",
-                            
-                            },
-                            hover: {
-                              fill: (() => {
-                                if (currRow.livability_index === "High") {
-                                  return "rgba(0, 100, 0, 0.8)"
-                                } else if (currRow.livability_index === "Medium") {
-                                  return "rgba(255, 140, 0, 0.6)"; 
-                                } else if (currRow.livability_index === "Low") {
-                                  return "rgba(139, 0, 0, 0.8)";
-                                }
-                            })(),
-                            outline: "none"
-                            },
-                            pressed: {
-                      fill: "#E42",
-                      outline: "none"
-                    }
-                  }}
-                />
+                          } else {
+                            return "#D6D6DA";
+                          }
+                        })(),
+                        outline: "none",
+                      },
+                      hover: {
+                        fill: (() => {
+                          if (currRow.livability_index === "High") {
+                            return "rgba(0, 100, 0, 0.8)"
+                          } else if (currRow.livability_index === "Medium") {
+                            return "rgba(255, 140, 0, 0.6)";
+                          } else if (currRow.livability_index === "Low") {
+                            return "rgba(139, 0, 0, 0.8)";
+                          } else {
+                            return "rgba(211, 211, 211, 0.8)"
+                          }
+                        })(),
+                        outline: "none"
+                      },
+                      pressed: {
+                        fill: "red",
+                        outline: "none"
+                      }
+                    }}
+                  />
                 })
-            }
-          </Geographies>
-        </ComposableMap>
+              }
+            </Geographies>
+          </ComposableMap>
         </> :
-        <LivabilityBarchart data={data.filter(row => row.year === year)} />
+          <LivabilityBarchart data={data.filter(row => row.year === year)} />
         }
-        
+
         <div className='dataContainer'>
           <button
             className={`yearButton buttonTop ${selectedYear === 2020 ? 'selectedYear' : ''}`}
-            onClick={() => handleMapYear(2020)}
-          >
+            onClick={() => handleMapYear(2020)}>
             2020
           </button>
           <button
             className={`yearButton buttonTop ${selectedYear === 2021 ? 'selectedYear' : ''}`}
-            onClick={() => handleMapYear(2021)}
-          >
+            onClick={() => handleMapYear(2021)}>
             2021
           </button>
           <button
             className={`yearButton buttonTop ${selectedYear === 2022 ? 'selectedYear' : ''}`}
-            onClick={() => handleMapYear(2022)}
-          >
+            onClick={() => handleMapYear(2022)}>
             2022
           </button>
         </div>
-        
+
         <Hovered hoveredGeography={hoveredData} location={mousePosition} />
       </div>
-        
+
       <div className='dataContainer'>
         <div className='inputation'>
           <p>Provinsi</p>
-          <input className='inputProvince province' type="text" onChange={e => handleFilter(inputElement?.value, yearElement?.value)} />
+          <input className='inputProvince province' type="text" onChange={() => handleFilter(inputElement?.value, yearElement?.value)} />
         </div>
         <div className='inputation'>
-          <p>Year</p> 
-          <select className='inputYear year'onChange={e => handleFilter(inputElement?.value, yearElement?.value)}>
-              <option value="2020">2020</option>
-              <option value="2021">2021</option>
-              <option value="2022">2022</option>
+          <p>Year</p>
+          <select className='inputYear year' onChange={() => handleFilter(inputElement?.value, yearElement?.value)}>
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
+            <option value="2022">2022</option>
           </select>
         </div>
       </div>

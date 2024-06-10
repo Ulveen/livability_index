@@ -50,7 +50,7 @@ export const columns = [
         selector: (row: LivabilityIndex) => row.purchasing_power,
     },
     {
-        name: 'Living Cost Stddev',
+        name: 'Living Cost',
         selector: (row: LivabilityIndex) => row.living_cost,
         cell: (row: any) => row.living_cost.toFixed(2)
     },

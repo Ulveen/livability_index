@@ -7,9 +7,11 @@ import DataTable from 'react-data-table-component';
 import { read_csv } from './utils/csv_utils';
 import { predict } from './controller/kmedoids_controller';
 import { LivabilityIndex } from './model/livabilityIndex';
+import LivabilityBarchart from './elements/barChart';
 
 export default function App() {
   const [data, setData] = useState<LivabilityIndex[]>([]);
+  const [currView, setCurrView] = useState('map')
   const [hoveredGeography, setHoveredGeography] = useState('')
   const [hoveredData, sethoveredData] = useState<LivabilityIndex|null>(null);
   const [year, setYear] = useState(2022)
@@ -21,30 +23,29 @@ export default function App() {
     setMousePosition({ x: event.clientX, y: event.clientY });
   };
 
-const sortValue = [
-  { name: 'low', value: 1 },
-  { name: 'medium', value: 2 },
-  { name: 'high', value: 3 }
-];
+  const sortValue = [
+    { name: 'low', value: 1 },
+    { name: 'medium', value: 2 },
+    { name: 'high', value: 3 }
+  ];
 
-  const caseInsensitiveSort = ( rowA : any, rowB : any ) => {
-  console.log(rowA)
-  const a = rowA.livability_index.toLowerCase();
-  const b = rowB.livability_index.toLowerCase();
+  const caseInsensitiveSort = (rowA: any, rowB: any) => {
+    const a = rowA.livability_index.toLowerCase();
+    const b = rowB.livability_index.toLowerCase();
 
-  const valueA = sortValue.find(item => item.name === a)?.value || 0;
-  const valueB = sortValue.find(item => item.name === b)?.value || 0;
+    const valueA = sortValue.find(item => item.name === a)?.value || 0;
+    const valueB = sortValue.find(item => item.name === b)?.value || 0;
 
-  if (valueA > valueB) {
-    return 1;
-  }
+    if (valueA > valueB) {
+      return 1;
+    }
 
-  if (valueB > valueA) {
-    return -1;
-  }
+    if (valueB > valueA) {
+      return -1;
+    }
 
-  return 0;
-};
+    return 0;
+  };
 
   const columns = [
     {
@@ -74,13 +75,13 @@ const sortValue = [
     {
       name: 'Living Cost Stddev',
       selector: (row: LivabilityIndex) => row.living_cost,
-      cell: (row: any) => row.living_cost.toFixed(2) 
+      cell: (row: any) => row.living_cost.toFixed(2)
     },
     {
       name: 'Livability Index',
       selector: (row: LivabilityIndex) => row.livability_index,
       sortable: true,
-      sortFunction : caseInsensitiveSort
+      sortFunction: caseInsensitiveSort
     }
   ]
 

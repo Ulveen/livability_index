@@ -10,7 +10,7 @@ app = Flask(__name__)
 scaler = StandardScaler()
 CORS(app)
 
-with open('kmedoids.pkl', 'rb') as f:
+with open('model.pkl', 'rb') as f:
     kmedoids = pickle.load(f)
 
 def safe_float_conversion(value):
@@ -50,7 +50,7 @@ def fit_data():
         x['year'] = x['year'].astype(int)
 
         labels = kmedoids.predict(x_scaled)
-        mapping = {0: 'Low', 1: 'Medium', 2: 'High'}
+        mapping = {0: 'High', 1: 'Low', 2: 'Medium'}
         mapped_labels = np.vectorize(mapping.get)(labels)
 
         x['livability_index'] = mapped_labels

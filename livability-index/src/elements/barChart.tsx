@@ -33,6 +33,7 @@ const LivabilityBarchart: React.FC<Props> = ({ data }) => {
                 <XAxis dataKey="livabilityIndex" />
                 <YAxis />
                 <Tooltip />
+                <Legend />
                 <Bar dataKey="count">
                     {chartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={colorMapping[entry.livabilityIndex]} />

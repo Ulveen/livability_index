@@ -11,11 +11,37 @@ import { LivabilityIndex } from './model/livabilityIndex';
 export default function App() {
   const [data, setData] = useState<LivabilityIndex[]>([]);
   const [hoveredGeography, setHoveredGeography] = useState('')
+  const [year, setYear] = useState(2022)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
+  
   const handleMouseMove = (event: any) => {
     setMousePosition({ x: event.clientX, y: event.clientY });
   };
+
+const sortValue = [
+  { name: 'low', value: 1 },
+  { name: 'medium', value: 2 },
+  { name: 'high', value: 3 }
+];
+
+  const caseInsensitiveSort = ( rowA : any, rowB : any ) => {
+  console.log(rowA)
+  const a = rowA.livability_index.toLowerCase();
+  const b = rowB.livability_index.toLowerCase();
+
+  const valueA = sortValue.find(item => item.name === a)?.value || 0;
+  const valueB = sortValue.find(item => item.name === b)?.value || 0;
+
+  if (valueA > valueB) {
+    return 1;
+  }
+
+  if (valueB > valueA) {
+    return -1;
+  }
+
+  return 0;
+};
 
   const columns = [
     {
@@ -45,11 +71,13 @@ export default function App() {
     {
       name: 'Living Cost Stddev',
       selector: (row: LivabilityIndex) => row.living_cost,
+      cell: (row: any) => row.living_cost.toFixed(2) 
     },
     {
       name: 'Livability Index',
       selector: (row: LivabilityIndex) => row.livability_index,
-      sortable: true
+      sortable: true,
+      sortFunction : caseInsensitiveSort
     }
   ]
 
@@ -99,6 +127,7 @@ export default function App() {
     const response = await predict(csv_data);
     setData(response);
     setRecord(response);
+    console.log(response)
   }
 
   useEffect(() => {
@@ -108,6 +137,11 @@ export default function App() {
   return (
     <div className='app'>
       <h1>Indonesia Map</h1>
+      <div className='dataContainer'>
+          <button onClick={() => setYear(2020)}>2020</button>
+          <button onClick={() => setYear(2021)}>2021</button>
+          <button onClick={() => setYear(2022)}>2022</button>
+        </div>
         <ComposableMap style={{ width: "100%", height: "900px" }}
           projection="geoMercator"
           projectionConfig={{
@@ -117,7 +151,9 @@ export default function App() {
         >
           <Geographies geography={indonesiaTopoJson}>
             {({ geographies }) =>
-              geographies.map((geo) => {
+            geographies.map((geo) => {
+              const currRow = record.find(row => row.province.includes(geo.properties.provinsi)  && row.year === parseInt(year)) ?? {livability_index : ''}
+              console.log(currRow.livability_index)
                 return <Geography onMouseEnter={(e) => {
                   setHoveredGeography(geo.properties.provinsi)
                   handleMouseMove(e)
@@ -127,8 +163,17 @@ export default function App() {
                   geography={geo}
                   style={{
                     default: {
-                      fill: "#D6D6DA",
-                      outline: "none"
+                      fill: (() => {
+                        if (currRow.livability_index == "High") {
+                          return "green";
+                        } else if (currRow.livability_index == "Medium") {
+                          return "orange";
+                        }else if (currRow.livability_index == "Low") {
+                          return "Red";
+                        }
+                      })(),
+                      outline: "none",
+                      
                     },
                     hover: {
                       fill: "#F53",

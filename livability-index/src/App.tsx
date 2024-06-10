@@ -11,9 +11,12 @@ import { LivabilityIndex } from './model/livabilityIndex';
 export default function App() {
   const [data, setData] = useState<LivabilityIndex[]>([]);
   const [hoveredGeography, setHoveredGeography] = useState('')
+  const [hoveredData, sethoveredData] = useState<LivabilityIndex|null>(null);
   const [year, setYear] = useState(2022)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
+  const inputElement = document.querySelector('.province') as HTMLInputElement | null;
+  const yearElement = document.querySelector('.year') as HTMLInputElement | null;
   const handleMouseMove = (event: any) => {
     setMousePosition({ x: event.clientX, y: event.clientY });
   };
@@ -84,6 +87,8 @@ const sortValue = [
   const [record, setRecord] = useState(data)
 
   function handleFilter(event: React.ChangeEvent<HTMLInputElement>, whichFilter: string) {
+  function handleFilter(event : any, year : any) {
+    const targeted = event.toLowerCase()
     const newData = data.filter(row => {
       if (whichFilter === "province") {
         return row.province.toLowerCase().includes(event.target.value.toLowerCase())
@@ -91,6 +96,9 @@ const sortValue = [
         return row.year.toString().includes(event.target.value.toLowerCase())
       }
       return true
+      const provinceMatch = row.province.toLowerCase().includes(targeted);
+      const yearMatch = row.year.toString().toLowerCase().includes(year);
+      return provinceMatch && yearMatch;
     })
     setRecord(newData)
   }
@@ -144,6 +152,7 @@ const sortValue = [
         </div>
         <ComposableMap style={{ width: "100%", height: "900px" }}
           projection="geoMercator"
+        projection="geoMercator"
           projectionConfig={{
             center: [118, -2],
             scale: 1000
@@ -159,8 +168,30 @@ const sortValue = [
                   handleMouseMove(e)
                 }}
                   onMouseLeave={() => setHoveredGeography('')}
+              const currRow = record.find(row => row.province.includes(geo.properties.provinsi)  && row.year === year) ?? {livability_index : ''}
+              return <Geography onMouseEnter={(e) => {
+                sethoveredData(() => {
+                  return data.filter(row => {
+                    const provinceMatch = row.province.toLowerCase().includes(geo.properties.provinsi.toLowerCase());
+                    const yearMatch = row.year.toString().toLowerCase().includes(year.toString())
+                    return provinceMatch && yearMatch;
+                  })[0]
+                })
+                handleMouseMove(e)
+              }}
+                  onMouseLeave={() => {
+                    console.log("anjayy")
+                    sethoveredData(null)
+                  }}
                   key={geo.rsmKey}
                   geography={geo}
+                  onClick={() => {
+                    if (inputElement != null && yearElement != null) {
+                      inputElement.value = geo.properties.provinsi;
+                      yearElement.value = year.toString();
+                    }
+                    handleFilter(inputElement?.value , yearElement?.value)
+                  }}
                   style={{
                     default: {
                       fill: (() => {
@@ -190,12 +221,15 @@ const sortValue = [
           </Geographies>
         </ComposableMap>
         <Hovered hoveredGeography={hoveredGeography} location={mousePosition} />
+        <Hovered hoveredGeography={hoveredData} location={mousePosition} />
 
         <div className='dataContainer'>
           <p>Provinsi: </p>
           <input className='input' type="text" onChange={e => handleFilter(e, "province")} />
+          <input className='input province' type="text"  onChange={e => handleFilter(inputElement?.value , yearElement?.value)} />
           <p>Year: </p>
           <input className='input' type="text" onChange={e => handleFilter(e, "year")} />
+          <input className='input year' type="text" onChange={e => handleFilter(inputElement?.value , yearElement?.value)} />
         </div>
         <div className='tableContainer'>
           <DataTable

@@ -6,12 +6,34 @@ html, body {
   margin: 0;
   padding: 0;
   background-color: #FFEDA0;
-  /* font-family: 'pasundan'; */
 }
 
 .titleFont {
   font-family: 'pasundan';
   font-size: 100px;
+  margin: 0;
+  margin-bottom: 20px;
+  }
+  
+.choiceButton {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  margin: 0;
+  margin-bottom: 20px;
+}
+
+.choices {
+  font-size: 20px;
+  border: none;
+  background-color: #D32F2F;
+  border-radius: 10px;
+  display: flex;
+  font-family: 'IBM Plex Sans';
+  justify-content: center;
+  align-items: center;
+  width: 200px;
+  height: 50px;
 }
 
 .app {
@@ -42,7 +64,6 @@ html, body {
   height: 40px;
   width: 120px;
   font-size: 20px;
-  margin-top: -100px;
   border-radius: 10px;
   border: none;
   transition: background-color 0.5s ease;
@@ -63,6 +84,7 @@ html, body {
 }
 
 .buttonTop:hover {
+  color: white;
   background-color: #D32F2F;
 }
 
@@ -92,8 +114,6 @@ html, body {
   margin-top: 20px; 
   font-family: 'IBM Plex Sans';
 }
-
-
 
 /* #root {
   max-width: 1280px;

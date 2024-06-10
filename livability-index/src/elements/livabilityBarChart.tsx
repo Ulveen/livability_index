@@ -1,6 +1,6 @@
 import React from "react";
 import { LivabilityIndex } from "../model/livabilityIndex";
-import { ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, BarChart, Cell } from "recharts";
+import { ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip, Bar, BarChart, Cell } from "recharts";
 
 interface Props {
     data: LivabilityIndex[]
@@ -33,7 +33,6 @@ const LivabilityBarchart: React.FC<Props> = ({ data }) => {
                 <XAxis dataKey="livabilityIndex" />
                 <YAxis />
                 <Tooltip />
-                <Legend />
                 <Bar dataKey="count">
                     {chartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={colorMapping[entry.livabilityIndex]} />

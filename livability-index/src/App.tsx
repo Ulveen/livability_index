@@ -7,10 +7,12 @@ import DataTable from 'react-data-table-component';
 import { read_csv } from './utils/csv_utils';
 import { predict } from './controller/kmedoids_controller';
 import { LivabilityIndex } from './model/livabilityIndex';
-import LivabilityBarchart from './elements/barChart';
+import LivabilityBarchart from './elements/livabilityBarChart';
+import { columns } from './model/tableColumns';
 
 export default function App() {
   const [data, setData] = useState<LivabilityIndex[]>([]);
+  const [record, setRecord] = useState(data)
   const [hoveredData, sethoveredData] = useState<LivabilityIndex | null>(null);
   const [year, setYear] = useState(2022)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -22,93 +24,6 @@ export default function App() {
   const handleMouseMove = (event: any) => {
     setMousePosition({ x: event.clientX, y: event.clientY });
   };
-
-  const sortValue = [
-    { name: 'low', value: 1 },
-    { name: 'medium', value: 2 },
-    { name: 'high', value: 3 }
-  ];
-
-  const caseInsensitiveSort = (rowA: any, rowB: any) => {
-    const a = rowA.livability_index.toLowerCase();
-    const b = rowB.livability_index.toLowerCase();
-
-    const valueA = sortValue.find(item => item.name === a)?.value || 0;
-    const valueB = sortValue.find(item => item.name === b)?.value || 0;
-
-    if (valueA > valueB) {
-      return 1;
-    }
-
-    if (valueB > valueA) {
-      return -1;
-    }
-
-    return 0;
-  };
-
-  const columns = [
-    {
-      name: 'Province',
-      selector: (row: LivabilityIndex) => row.province
-    },
-    {
-      name: 'Year',
-      selector: (row: LivabilityIndex) => row.year
-    },
-    {
-      name: 'Health Index',
-      selector: (row: LivabilityIndex) => row.health_index,
-    },
-    {
-      name: 'Polution',
-      selector: (row: LivabilityIndex) => row.polution,
-    },
-    {
-      name: 'Crime Rate',
-      selector: (row: LivabilityIndex) => row.crime_rate,
-    },
-    {
-      name: 'Purchasing Power',
-      selector: (row: LivabilityIndex) => row.purchasing_power,
-    },
-    {
-      name: 'Living Cost Stddev',
-      selector: (row: LivabilityIndex) => row.living_cost,
-      cell: (row: any) => row.living_cost.toFixed(2)
-    },
-    {
-      name: 'Livability Index',
-      selector: (row: LivabilityIndex) => row.livability_index,
-      sortable: true,
-      sortFunction: caseInsensitiveSort,
-      conditionalCellStyles: [
-        {
-          when: (row: LivabilityIndex) => row.livability_index.toLowerCase() === 'low',
-          style: {
-            backgroundColor: 'rgba(255, 0, 0, 0.5)',
-            color: 'black',
-          },
-        },
-        {
-          when: (row: LivabilityIndex) => row.livability_index.toLowerCase() === 'medium',
-          style: {
-            backgroundColor: 'rgba(255, 165, 0, 0.5)',
-            color: 'black',
-          },
-        },
-        {
-          when: (row: LivabilityIndex) => row.livability_index.toLowerCase() === 'high',
-          style: {
-            backgroundColor: 'rgba(0, 128, 0, 0.5)',
-            color: 'black',
-          },
-        },
-      ],
-    }
-  ]
-
-  const [record, setRecord] = useState(data)
 
   function handleFilter(event: any, year: any) {
     const targeted = event.toLowerCase()
@@ -141,6 +56,18 @@ export default function App() {
     handleFilter(inputElement?.value, yearElement?.value)
   }
 
+  function handleMapYear(selectedYear: number) {
+    setYear(selectedYear);
+    setSelectedYear(selectedYear);
+    handleFilter(inputElement?.value, selectedYear)
+  };
+
+  async function fetchData() {
+    const csv_data = await read_csv('./livability_index.csv') as LivabilityIndex[];
+    const response = await predict(csv_data);
+    setData(response);
+    setRecord(response);
+  }
   const customStyles = {
     header: {
       style: {
@@ -172,18 +99,42 @@ export default function App() {
     },
   }
 
-  async function fetchData() {
-    const csv_data = await read_csv('./livability_index.csv') as LivabilityIndex[];
-    const response = await predict(csv_data);
-    setData(response);
-    setRecord(response);
+  const colorMapping = (currRow: LivabilityIndex | { livability_index: string; }) => {
+    return {
+      default: {
+        fill: (() => {
+          if (currRow.livability_index == "High") {
+            return "green";
+          } else if (currRow.livability_index == "Medium") {
+            return "orange";
+          } else if (currRow.livability_index == "Low") {
+            return "Red";
+          } else {
+            return "#D6D6DA";
+          }
+        })(),
+        outline: "none",
+      },
+      hover: {
+        fill: (() => {
+          if (currRow.livability_index === "High") {
+            return "rgba(0, 100, 0, 0.8)"
+          } else if (currRow.livability_index === "Medium") {
+            return "rgba(255, 140, 0, 0.6)";
+          } else if (currRow.livability_index === "Low") {
+            return "rgba(139, 0, 0, 0.8)";
+          } else {
+            return "rgba(211, 211, 211, 0.8)"
+          }
+        })(),
+        outline: "none"
+      },
+      pressed: {
+        fill: "red",
+        outline: "none"
+      }
+    }
   }
-
-  const handleMapYear = (selectedYear: number) => {
-    setYear(selectedYear);
-    setSelectedYear(selectedYear);
-    handleFilter(inputElement?.value, selectedYear)
-  };
 
   useEffect(() => {
     fetchData()
@@ -207,49 +158,14 @@ export default function App() {
             <Geographies geography={indonesiaTopoJson}>
               {({ geographies }) =>
                 geographies.map((geo) => {
-                  const currRow = record.find(row => row.province.includes(geo.properties.provinsi) && row.year === year) || { livability_index: "" }
+                  const currRow = record.find(row => row.province.toLowerCase().includes(geo.properties.provinsi.toLowerCase()) && row.year === year) || { livability_index: "" }
                   return <Geography
                     onMouseEnter={(e) => handleMouseEnterMap(e, geo)}
                     onClick={() => handleMouseClickMap(geo)}
-                    onMouseLeave={() => {
-                      sethoveredData(null)
-                    }}
+                    onMouseLeave={() => { sethoveredData(null) }}
                     key={geo.rsmKey}
                     geography={geo}
-                    style={{
-                      default: {
-                        fill: (() => {
-                          if (currRow.livability_index == "High") {
-                            return "green";
-                          } else if (currRow.livability_index == "Medium") {
-                            return "orange";
-                          } else if (currRow.livability_index == "Low") {
-                            return "Red";
-                          } else {
-                            return "#D6D6DA";
-                          }
-                        })(),
-                        outline: "none",
-                      },
-                      hover: {
-                        fill: (() => {
-                          if (currRow.livability_index === "High") {
-                            return "rgba(0, 100, 0, 0.8)"
-                          } else if (currRow.livability_index === "Medium") {
-                            return "rgba(255, 140, 0, 0.6)";
-                          } else if (currRow.livability_index === "Low") {
-                            return "rgba(139, 0, 0, 0.8)";
-                          } else {
-                            return "rgba(211, 211, 211, 0.8)"
-                          }
-                        })(),
-                        outline: "none"
-                      },
-                      pressed: {
-                        fill: "red",
-                        outline: "none"
-                      }
-                    }}
+                    style={colorMapping(currRow)}
                   />
                 })
               }

@@ -1,25 +1,99 @@
-.app {
-  text-align: center;
-  justify-content: center;
+@import url('https://fonts.cdnfonts.com/css/pasundan');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #FFEDA0;
+  /* font-family: 'pasundan'; */
 }
 
-.dataContainer{
+.titleFont {
+  font-family: 'pasundan';
+  font-size: 100px;
+}
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  color: #333;
+}
+
+.dataContainer {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  margin-left: 10vw;
+  justify-content: space-evenly;
 }
 
-.input {
-  height: 1.3vw;
-  margin-left: 1vw;
-  margin-right: 1vw;
+.mapContainer {
+  border: 2px solid #D2691E;
+  border-radius: 30px;
+  background-color: #FFF8DC;
+  width: 80%;
+  align-self: center;
+  padding: 20px;
+}
+
+.yearButton {
+  color: black;
+  height: 40px;
+  width: 120px;
+  font-size: 20px;
+  margin-top: -100px;
+  border-radius: 10px;
+  border: none;
+  transition: background-color 0.5s ease;
+}
+
+.selectedYear {
+  color: white;
+  background-color: #CE1126;
+}
+
+.inputYear {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+
+.buttonTop:hover {
+  background-color: #D32F2F;
+}
+
+.inputProvince {
+  height: 2em;
+  margin-left: 1em;
+  margin-right: 1em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 0.5em;
+}
+
+.dataContainer p {
+  width: 500px;
+  font-size: 25px;
+  font-family: 'IBM Plex sans';
+}
+
+.inputation {
+  display: flex;
+  flex-direction: column;
 }
 
 .tableContainer {
-  width: 80vw;
-  margin-left: 10vw;
+  width: 85%;
+  align-self: center;
+  margin-top: 20px; 
+  font-family: 'IBM Plex Sans';
 }
+
+
 
 /* #root {
   max-width: 1280px;

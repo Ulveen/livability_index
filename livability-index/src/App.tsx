@@ -49,6 +49,7 @@ export default function App() {
   function handleMouseClickMap(geo: any) {
     if (inputElement?.value != null && inputElement?.value !== "") {
       inputElement.value = "";
+      yearElement!.value = "";
     } else if (inputElement != null && yearElement != null) {
       inputElement.value = geo.properties.provinsi;
       yearElement.value = year.toString();
@@ -179,7 +180,9 @@ export default function App() {
                       <Geography
                         onMouseEnter={(e) => handleMouseEnterMap(e, geo)}
                         onClick={() => handleMouseClickMap(geo)}
-                        onMouseLeave={() => { setHoveredData(null); }}
+                        onMouseLeave={() => {
+                          setHoveredData(null);
+                        }}
                         key={geo.rsmKey}
                         geography={geo}
                         style={colorMapping(currRow)}
@@ -233,6 +236,7 @@ export default function App() {
             className='inputYear year'
             onChange={() => handleFilter(inputElement?.value, yearElement?.value)}
           >
+            <option value=""></option>
             <option value="2020">2020</option>
             <option value="2021">2021</option>
             <option value="2022">2022</option>

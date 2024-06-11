@@ -17,13 +17,13 @@ const Hovered = ({ hoveredGeography, location } : { hoveredGeography : Livabilit
       boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)'
     }}>
       <strong>{hoveredGeography.province}</strong> <br />
-      <strong>Strong : {hoveredGeography.year}</strong><br />
-      <strong>Year : {hoveredGeography.health_index}</strong><br />
-      <strong>Polution : {hoveredGeography.polution}</strong><br />
-      <strong>Crime : {hoveredGeography.crime_rate}</strong><br />
-      <strong>Purchasing : {hoveredGeography.purchasing_power}</strong><br />
-      <strong>Living Cost: {Math.round(hoveredGeography.living_cost * 100) / 100}</strong><br />
-      <strong>Livability index : {hoveredGeography.livability_index}</strong>
+      <span>Year : {hoveredGeography.year}</span><br />
+      <span>Health index : {hoveredGeography.health_index}</span><br />
+      <span>Polution : {hoveredGeography.polution}</span><br />
+      <span>Crime : {hoveredGeography.crime_rate}</span><br />
+      <span>Purchasing : {hoveredGeography.purchasing_power}</span><br />
+      <span>Living Cost: {Math.round(hoveredGeography.living_cost * 100) / 100}</span><br />
+      <span>Livability index : {hoveredGeography.livability_index}</span>
     </div>
   );
 };

@@ -66,6 +66,7 @@ export default function App() {
   async function fetchData() {
     const csv_data = await read_csv('./livability_index.csv') as LivabilityIndex[];
     const response = await predict(csv_data);
+
     setData(response);
     setRecord(response);
   }
@@ -141,6 +142,17 @@ export default function App() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  if(data.length === 0) {
+    return (
+      <div className='app'>
+        <h1 className='titleFont'>Loading...</h1>
+      </div>
+    );
+  }
+
+  console.log(data);
+  
 
   return (
     <div className='app'>

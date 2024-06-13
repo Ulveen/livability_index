@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 import logging
 import pandas as pd
 import numpy as np
@@ -22,11 +23,19 @@ def safe_float_conversion(value):
     except ValueError:
         return None
 
-def preprocess_data(df: pd.DataFrame):
-    df['living_cost_mean'].fillna(df['living_cost_mean'].mean(), inplace=True)
-    df['living_cost_stddev'].fillna(df['living_cost_stddev'].mean(), inplace=True)
-    df['living_cost'] = df['living_cost_mean'] + df['living_cost_stddev']
-    df.drop(columns=['living_cost_mean', 'living_cost_stddev'], inplace=True)
+def preprocess(df: pd.DataFrame) -> pd.DataFrame:
+    provinces = df['province']
+    years = df['year']
+    df = df.drop(columns=['province', 'year'])
+    df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+
+    n_components = 1
+    pca = PCA(n_components=n_components)
+    df = pd.DataFrame(pca.fit_transform(df), columns=['PC' + str(i) for i in range(1, n_components + 1)])
+
+    df['province'] = provinces
+    df['year'] = years
+
     return df
 
 def scale_data(df: pd.DataFrame):
@@ -43,18 +52,21 @@ def fit_data():
         columns_to_convert = ['year','health_index','living_cost_mean','living_cost_stddev','polution','crime_rate','purchasing_power']
         for column in columns_to_convert:
             x[column] = x[column].apply(safe_float_conversion)
+        
+        x['living_cost'] = x['living_cost_mean'] + x['living_cost_stddev']
+        x = x.drop(columns=['living_cost_mean', 'living_cost_stddev'])
+        x['living_cost'] = x['living_cost'].fillna(x['living_cost'].mean())
 
-        x = preprocess_data(x)
-        x_scaled = scale_data(x)
+        x_copy = preprocess(x)
+        x_copy['year'] = x_copy['year'].astype(int)
 
-        x['year'] = x['year'].astype(int)
-
-        labels = kmedoids.predict(x_scaled)
-        mapping = {0: 'High', 1: 'Low', 2: 'Medium'}
+        labels = kmedoids.predict(x_copy.drop(columns=['province', 'year']))
+        mapping = {0: 'Medium', 1: 'High', 2: 'Low'}
         mapped_labels = np.vectorize(mapping.get)(labels)
 
         x['livability_index'] = mapped_labels
         merged = pd.concat([x, pd.DataFrame(mapped_labels, columns=['livability_index'])], axis=1)
+        print(merged)
 
         return jsonify(merged.to_dict(orient='records'))
     except Exception as e:
